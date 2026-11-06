@@ -1,0 +1,18 @@
+# build outputs (installer exe goes to GitHub Releases, not the repo)
+bin/
+dist/
+*.obj
+*.o
+
+# vendor SDK shipped with the device (proprietary) - loaded from C:\Program Files (x86)\Gear\Settings at runtime
+sapjoyapis.dll
+
+# downloaded third-party installers / payloads
+installer/*.exe
+installer/*.zip
+payload/
+
+# personal data (this PC's Azahar saves, Steam ids, logs)
+personal/
+*.log
+docs/사용자-할일.md

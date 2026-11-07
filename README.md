@@ -55,6 +55,8 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 ### 설치
 
 1. [Releases](https://github.com/nautymac/OnePad/releases)에서 `OnePad-Setup-x.y.z.exe`를 받아 실행합니다(관리자 권한 요청). 설치 중 HidHide, usbip-win2, (선택) AutoHotkey v2, Azahar를 각 공식 릴리스에서 내려받습니다.
+   - 내려받은 파일은 설치기 옆 `installer\` 폴더에 보관되므로 다음 설치부터는 다시 받지 않습니다. 이 폴더에 설치 파일을 미리 넣어 두면 인터넷 없이 설치됩니다(파일 이름의 버전이 달라도 됩니다. 예: `HidHide_*_x64.exe`, `USBip-*-x64.exe`, `AutoHotkey_*_setup.exe`, `azahar-windows-msys2-*.zip`).
+   - 검증된 버전을 먼저 받고, 그 버전이 더 이상 없으면 각 프로젝트의 최신 릴리스를 대신 받습니다.
 2. 재부팅합니다. HidHide 필터는 재부팅 뒤에 Xbox 입력 스택에 붙습니다.
 3. Steam → 설정 → 컨트롤러에 **Steam Deck 컨트롤러 하나만** 보이면 정상입니다. 3D One이 같이 보이면 Steam을 한 번 재시작하세요.
 4. Steam을 관리자 권한으로 실행하지 마세요(Steam Input이 깨집니다).
@@ -136,6 +138,8 @@ Outside Steam (desktop, ordinary programs) the trackpads act as a mouse and the 
 ### Install
 
 1. Download `OnePad-Setup-x.y.z.exe` from [Releases](https://github.com/nautymac/OnePad/releases) and run it (asks for administrator rights). The installer downloads HidHide, usbip-win2, optional AutoHotkey v2 and Azahar from their official releases.
+   - Downloads are kept in an `installer\` folder next to the setup, so later installs do not fetch them again. Put the files there yourself for an offline install (any version is accepted: `HidHide_*_x64.exe`, `USBip-*-x64.exe`, `AutoHotkey_*_setup.exe`, `azahar-windows-msys2-*.zip`).
+   - The tested versions are fetched first; if one has been removed, the newest release of that project is used instead.
 2. Reboot. The HidHide filter attaches to the Xbox input stack only after a reboot.
 3. Steam → Settings → Controller should list **only one Steam Deck controller**. If the 3D One shows up as well, restart Steam once.
 4. Never run Steam as administrator (it breaks Steam Input).

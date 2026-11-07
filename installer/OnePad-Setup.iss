@@ -7,10 +7,29 @@
 #define MyAppPublisher "nautymac"
 #define MyAppURL "https://github.com/nautymac/OnePad"
 #define Root ".."
+; pinned (tested) versions; overridable from the command line (ISCC /DHidHideUrl=...) e.g. to test the fallback
+#ifndef HidHideUrl
 #define HidHideUrl "https://github.com/nefarius/HidHide/releases/download/v1.5.230.0/HidHide_1.5.230_x64.exe"
+#endif
+#ifndef UsbipUrl
 #define UsbipUrl   "https://github.com/vadimgrn/usbip-win2/releases/download/v.0.9.8.1/USBip-0.9.8.1-x64.exe"
+#endif
+#ifndef AhkUrl
 #define AhkUrl     "https://github.com/AutoHotkey/AutoHotkey/releases/download/v2.0.26/AutoHotkey_2.0.26_setup.exe"
+#endif
+#ifndef AzaharUrl
 #define AzaharUrl  "https://github.com/azahar-emu/azahar/releases/download/2126.1/azahar-windows-msys2-2126.1.zip"
+#endif
+; <setup folder>\installer\ holds offline copies (any version matching the mask is accepted, newest wins);
+; downloads are saved there too so they are not fetched again next time.
+#define HidHideFile "HidHide_1.5.230_x64.exe"
+#define HidHideMask "HidHide_*_x64.exe"
+#define UsbipFile   "USBip-0.9.8.1-x64.exe"
+#define UsbipMask   "USBip-*-x64.exe"
+#define AhkFile     "AutoHotkey_2.0.26_setup.exe"
+#define AhkMask     "AutoHotkey_*_setup.exe"
+#define AzaharFile  "azahar-windows-msys2-2126.1.zip"
+#define AzaharMask  "azahar-windows-msys2-*.zip"
 
 [Setup]
 AppId={{7C3E2B1A-5D4F-4C8B-9E6A-3D0E1A2B4C6D}
@@ -101,11 +120,6 @@ Source: "{#Root}\ahk\3D-One-Hotkeys.ahk"; DestDir: "{localappdata}\3D-One-Hotkey
 #ifdef PERSONAL
 Source: "{#PERSONAL}\azahar-config\*"; DestDir: "{userappdata}\Azahar\config"; Components: personal; Flags: recursesubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#PERSONAL}\azahar-userdata\*"; DestDir: "{userappdata}\Azahar"; Components: personal; Flags: recursesubdirs onlyifdoesntexist uninsneveruninstall
-; personal build = offline: the third-party installers travel inside the setup instead of being downloaded
-Source: "{#PERSONAL}\..\installer\HidHide_1.5.230_x64.exe"; DestDir: "{tmp}"; DestName: "HidHide.exe"; Flags: deleteafterinstall; Check: NeedHidHide
-Source: "{#PERSONAL}\..\installer\USBip-0.9.8.1-x64.exe"; DestDir: "{tmp}"; DestName: "USBip.exe"; Flags: deleteafterinstall; Check: NeedUsbip
-Source: "{#PERSONAL}\..\installer\AutoHotkey_2.0.26_setup.exe"; DestDir: "{tmp}"; DestName: "AutoHotkey.exe"; Components: ahk; Flags: deleteafterinstall; Check: NeedAhk
-Source: "{#PERSONAL}\..\installer\azahar-windows-msys2-2126.1.zip"; DestDir: "{tmp}"; DestName: "azahar.zip"; Components: azahar; Flags: deleteafterinstall; Check: NeedAzahar
 #endif
 
 [Icons]
@@ -175,6 +189,120 @@ begin
   KSleep(8000);   // let a previous OnePad (any path) finish detaching the virtual Deck before the new one starts
 end;
 
+// ---------------------------------------------------------------------------------------------------------
+// Third-party parts: offline folder first, then the tested (pinned) version, then the newest official release.
+//   1. <setup folder>\installer\<mask>  (any version; newest name wins)        -> copied to {tmp}
+//   2. the version pinned at build time (checked with a size request first)     -> downloaded, saved to that folder
+//   3. GitHub "releases/latest" API, asset matching prefix/suffix               -> same (when the pinned one is gone)
+// Everything is fetched at least once even if not needed now, so the folder ends up as a complete offline set.
+// ---------------------------------------------------------------------------------------------------------
+var
+  DlCount: Integer;
+  DlTmp: array[0..7] of String;    // name in {tmp}
+  DlSave: array[0..7] of String;   // name to keep in <setup folder>\installer
+
+function InstallerDir: String; begin Result := ExpandConstant('{src}\installer'); end;
+
+function SplitMask(const Mask: String; var Prefix, Suffix: String): Boolean;
+var p: Integer;
+begin
+  p := Pos('*', Mask); Result := p > 0;
+  if Result then begin Prefix := Copy(Mask, 1, p - 1); Suffix := Copy(Mask, p + 1, MaxInt); end;
+end;
+
+function MatchMask(const Name, Mask: String): Boolean;
+var pre, suf: String;
+begin
+  Result := False;
+  if not SplitMask(Mask, pre, suf) then begin Result := CompareText(Name, Mask) = 0; exit; end;
+  if Length(Name) < Length(pre) + Length(suf) then exit;
+  Result := (CompareText(Copy(Name, 1, Length(pre)), pre) = 0) and (CompareText(Copy(Name, Length(Name) - Length(suf) + 1, Length(suf)), suf) = 0);
+end;
+
+// newest file in <setup folder>\installer matching Mask ('' if none)
+function FindLocal(const Mask: String): String;
+var fr: TFindRec; best: String;
+begin
+  Result := ''; best := '';
+  if FindFirst(InstallerDir + '\' + Mask, fr) then
+  begin
+    try
+      repeat
+        // version numbers in these names sort as text well enough: the greatest name is the newest
+        if ((fr.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0) and ((best = '') or (CompareText(fr.Name, best) > 0)) then best := fr.Name;
+      until not FindNext(fr);
+    finally
+      FindClose(fr);
+    end;
+  end;
+  if best <> '' then Result := InstallerDir + '\' + best;
+end;
+
+// asset URL from the newest GitHub release of Repo whose file name matches Mask ('' if the API is unreachable)
+function LatestAssetUrl(const Repo, Mask: String): String;
+var json, key, url: AnsiString; p, q: Integer; jf: String;
+begin
+  Result := '';
+  jf := ExpandConstant('{tmp}\') + 'latest-' + IntToStr(DlCount) + '.json';
+  try
+    DownloadTemporaryFile('https://api.github.com/repos/' + Repo + '/releases/latest', ExtractFileName(jf), '', nil);
+  except
+    Log('releases/latest lookup failed for ' + Repo + ': ' + GetExceptionMessage);
+    exit;
+  end;
+  if not LoadStringFromFile(jf, json) then exit;
+  key := '"browser_download_url"';
+  p := Pos(key, json);
+  while p > 0 do
+  begin
+    Delete(json, 1, p + Length(key) - 1);
+    q := Pos('"https://', json); if q = 0 then exit;
+    Delete(json, 1, q);
+    q := Pos('"', json); if q = 0 then exit;
+    url := Copy(json, 1, q - 1);
+    if MatchMask(ExtractFileName(String(url)), Mask) then begin Result := String(url); exit; end;
+    p := Pos(key, json);
+  end;
+end;
+
+// Install=True: the part is needed now (copied/downloaded into {tmp} for [Run]).
+// Install=False: not needed now, but still fetched once so <setup folder>\installer holds a complete offline set.
+procedure Need(const TmpName, Mask, Repo, PinnedUrl: String; Install: Boolean);
+var local, url: String;
+begin
+  local := FindLocal(Mask);
+  if local <> '' then
+  begin
+    if not Install then exit;
+    Log('using offline copy ' + local);
+    if FileCopy(local, ExpandConstant('{tmp}\') + TmpName, False) then exit;
+    Log('copy failed, falling back to download');
+  end;
+  // the version this release was tested with first; if it is gone (404 etc.) take the newest release instead
+  url := '';
+  try
+    DownloadTemporaryFileSize(PinnedUrl);
+    url := PinnedUrl;
+  except
+    Log('pinned version unavailable (' + PinnedUrl + '): ' + GetExceptionMessage);
+  end;
+  if url = '' then url := LatestAssetUrl(Repo, Mask);
+  if url = '' then begin Log('no source for ' + TmpName); exit; end;
+  Log('download ' + url);
+  DlPage.Add(url, TmpName, '');
+  DlTmp[DlCount] := TmpName; DlSave[DlCount] := ExtractFileName(url); DlCount := DlCount + 1;
+end;
+
+// keep what was downloaded next to the setup so the next run is offline (ignored when that folder is read-only)
+procedure KeepDownloads;
+var i: Integer;
+begin
+  if DlCount = 0 then exit;
+  if not ForceDirectories(InstallerDir) then exit;
+  for i := 0 to DlCount - 1 do
+    if not FileCopy(ExpandConstant('{tmp}\') + DlTmp[i], InstallerDir + '\' + DlSave[i], False) then Log('could not keep ' + DlSave[i]);
+end;
+
 function DefaultAzaharDir: String;
 begin
   if DirExists('D:\') then Result := 'D:\Azahar' else Result := ExpandConstant('{sd}\Azahar');
@@ -229,22 +357,27 @@ begin
   begin
     HidHideInstalledNow := NeedHidHide;
     DlPage.Clear;
-#ifndef PERSONAL
-    if NeedHidHide then DlPage.Add('{#HidHideUrl}', 'HidHide.exe', '');
-    if NeedUsbip then DlPage.Add('{#UsbipUrl}', 'USBip.exe', '');
-    if WizardIsComponentSelected('ahk') and NeedAhk then DlPage.Add('{#AhkUrl}', 'AutoHotkey.exe', '');
-    if WizardIsComponentSelected('azahar') and NeedAzahar then DlPage.Add('{#AzaharUrl}', 'azahar.zip', '');
-#endif
-    DlPage.Show;
-    try
+    // Third-party parts: use <setup folder>\installer\<file> when it is there (offline / no re-download),
+    // otherwise download from the official release and keep a copy in that folder for next time.
+    DlCount := 0;
+    Need('HidHide.exe', '{#HidHideMask}', 'nefarius/HidHide', '{#HidHideUrl}', NeedHidHide);
+    Need('USBip.exe', '{#UsbipMask}', 'vadimgrn/usbip-win2', '{#UsbipUrl}', NeedUsbip);
+    Need('AutoHotkey.exe', '{#AhkMask}', 'AutoHotkey/AutoHotkey', '{#AhkUrl}', WizardIsComponentSelected('ahk') and NeedAhk);
+    Need('azahar.zip', '{#AzaharMask}', 'azahar-emu/azahar', '{#AzaharUrl}', WizardIsComponentSelected('azahar') and NeedAzahar);
+    if DlCount > 0 then
+    begin
+      DlPage.Show;
       try
-        DlPage.Download;
-      except
-        if DlPage.AbortedByUser then Log('Download aborted by user.') else SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
-        Result := False;
+        try
+          DlPage.Download;
+          KeepDownloads;
+        except
+          if DlPage.AbortedByUser then Log('Download aborted by user.') else SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+          Result := False;
+        end;
+      finally
+        DlPage.Hide;
       end;
-    finally
-      DlPage.Hide;
     end;
   end;
 end;

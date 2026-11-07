@@ -101,6 +101,11 @@ Source: "{#Root}\ahk\3D-One-Hotkeys.ahk"; DestDir: "{localappdata}\3D-One-Hotkey
 #ifdef PERSONAL
 Source: "{#PERSONAL}\azahar-config\*"; DestDir: "{userappdata}\Azahar\config"; Components: personal; Flags: recursesubdirs onlyifdoesntexist uninsneveruninstall
 Source: "{#PERSONAL}\azahar-userdata\*"; DestDir: "{userappdata}\Azahar"; Components: personal; Flags: recursesubdirs onlyifdoesntexist uninsneveruninstall
+; personal build = offline: the third-party installers travel inside the setup instead of being downloaded
+Source: "{#PERSONAL}\..\installer\HidHide_1.5.230_x64.exe"; DestDir: "{tmp}"; DestName: "HidHide.exe"; Flags: deleteafterinstall; Check: NeedHidHide
+Source: "{#PERSONAL}\..\installer\USBip-0.9.8.1-x64.exe"; DestDir: "{tmp}"; DestName: "USBip.exe"; Flags: deleteafterinstall; Check: NeedUsbip
+Source: "{#PERSONAL}\..\installer\AutoHotkey_2.0.26_setup.exe"; DestDir: "{tmp}"; DestName: "AutoHotkey.exe"; Components: ahk; Flags: deleteafterinstall; Check: NeedAhk
+Source: "{#PERSONAL}\..\installer\azahar-windows-msys2-2126.1.zip"; DestDir: "{tmp}"; DestName: "azahar.zip"; Components: azahar; Flags: deleteafterinstall; Check: NeedAzahar
 #endif
 
 [Icons]
@@ -224,10 +229,12 @@ begin
   begin
     HidHideInstalledNow := NeedHidHide;
     DlPage.Clear;
+#ifndef PERSONAL
     if NeedHidHide then DlPage.Add('{#HidHideUrl}', 'HidHide.exe', '');
     if NeedUsbip then DlPage.Add('{#UsbipUrl}', 'USBip.exe', '');
     if WizardIsComponentSelected('ahk') and NeedAhk then DlPage.Add('{#AhkUrl}', 'AutoHotkey.exe', '');
     if WizardIsComponentSelected('azahar') and NeedAzahar then DlPage.Add('{#AzaharUrl}', 'azahar.zip', '');
+#endif
     DlPage.Show;
     try
       try

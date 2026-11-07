@@ -61,7 +61,7 @@ struct PadConfig {
     PadMode mode = PadMode::Mouse;
     PadMode shiftMode = PadMode::Scroll;   // mode while the mode-shift grip is held
     bool haptics = false;                  // firmware touchpad mode (vibration on move) instead of wheel mode
-    double sensitivity = 1.6;              // mouse pixels per pad unit
+    double sensitivity = 0.8;              // mouse pixels per pad unit
     double accel = 0.0;                    // extra multiplier per unit of speed (0 = linear)
     double friction = 0.0;                 // 0 = plain trackpad; 0.85-0.95 = trackball roll after lift
     bool flipX = false, flipY = false;     // sensor orientation fix (the left half is mounted rotated 180 degrees)
@@ -70,7 +70,7 @@ struct PadConfig {
     int tapMs = 180;
     int tapDist = 24;
     bool tapDrag = false;                  // tap, then touch again and hold -> left button held until lift (off: misfires without a real pad button)
-    int scrollStep = 40;                   // pad units per wheel notch
+    int scrollStep = 50;                   // pad units per wheel notch
     bool scrollInvert = false;
     bool scrollHorizontal = true;
     int dpadKeys[4] = {VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT};

@@ -182,8 +182,9 @@ private:
         bool scroll = pc.mode == PadMode::Scroll;   // scroll ignores `sensitivity`; its speed is scroll_step
         for (int i = 0; i < 7; i++) {
             wchar_t lbl[64];
-            if (scroll) swprintf(lbl, 64, L"스크롤 속도: %s (step %d)", sensName[i], steps[i]);
-            else swprintf(lbl, 64, L"민감도: %s (%.2f)", sensName[i], sens[i]);
+            const wchar_t* def = (scroll ? steps[i] == 50 : std::fabs(sens[i] - 0.8) < 0.01) ? L" — 기본" : L"";   // defaults chosen 2026-11-07
+            if (scroll) swprintf(lbl, 64, L"스크롤 속도: %s (step %d)%s", sensName[i], steps[i], def);
+            else swprintf(lbl, 64, L"민감도: %s (%.2f)%s", sensName[i], sens[i], def);
             bool on = scroll ? pc.scrollStep == steps[i] : std::fabs(pc.sensitivity - sens[i]) < 0.05;
             AppendMenuW(m, MF_STRING | (on ? MF_CHECKED : 0), base + 20 + i, lbl);
         }

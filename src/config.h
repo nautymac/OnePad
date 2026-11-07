@@ -293,7 +293,7 @@ inline std::string PadSection(const char* name, const PadConfig& p) {
         "[%s]\n"
         "; mode: mouse | scroll | dpad | native_touchpad | native_wheel | native_leftstick | native_rightstick | off\n"
         "mode=%s\n"
-        "; 모드시프트 그립을 누르는 동안의 모드\n"
+        "; 시프트 모드: action=modeshift 로 둔 백버튼(L4 또는 R4)을 누르고 있는 동안만 쓰는 패드 모드 (예: 평소 mouse, 누르는 동안 scroll)\n"
         "shift_mode=%s\n"
         "; 1 = 펌웨어 터치패드 모드(손가락 움직일 때 진동), 0 = 휠 모드(진동 없음)\n"
         "haptics=%d\n"
@@ -328,12 +328,12 @@ inline std::string PadSection(const char* name, const PadConfig& p) {
 inline bool SaveConfig(const std::wstring& path, const Config& c) {
     std::string s = "; OnePad 설정 - abxylute 3D One 터치패드/백버튼/자이로 변환 서비스\n; 저장 후 트레이 메뉴의 '설정 다시 읽기' 또는 서비스 재시작\n\n";
     char b[2048];
-    snprintf(b, sizeof b, "[general]\nenabled=%d\n; 실행 중 백버튼(M1/M2)의 펌웨어 매핑을 해제해 L3/R3 입력이 섞이지 않게 함\nunmap_grips=%d\n; 종료 시 펌웨어 설정을 원래대로 복원\nrestore_on_exit=%d\n; 로그온 시 자동 시작 작업(OnePad)을 첫 실행 때 스스로 등록\nautostart=%d\ndebug=%d\n\n",
+    snprintf(b, sizeof b, "[general]\nenabled=%d\n; 실행 중 백버튼(L4, R4; 펌웨어 이름 M1/M2)의 펌웨어 매핑을 해제해 L3/R3 입력이 섞이지 않게 함\nunmap_grips=%d\n; 종료 시 펌웨어 설정을 원래대로 복원\nrestore_on_exit=%d\n; 로그온 시 자동 시작 작업(OnePad)을 첫 실행 때 스스로 등록\nautostart=%d\ndebug=%d\n\n",
              c.enabled ? 1 : 0, c.unmapGrips ? 1 : 0, c.restoreOnExit ? 1 : 0, c.autostart ? 1 : 0, c.debug ? 1 : 0);
     s += b;
     s += PadSection("pad.right", c.right);
     s += PadSection("pad.left", c.left);
-    snprintf(b, sizeof b, "[grip.left]\n; none | modeshift | gyro_hold | gyro_toggle | key:CTRL+C | mouse:left|right|middle|x1|x2\naction=%s\nbit=0x%02X\n\n[grip.right]\naction=%s\nbit=0x%02X\n\n",
+    snprintf(b, sizeof b, "[grip.left]\n; 왼쪽 백버튼(L4) 동작. 데스크톱/비Steam 앱에서만 적용되고, Steam 게임/Steam 창에서는 Steam의 L4 설정을 따름\n; none | modeshift(누르는 동안 패드를 시프트 모드로) | gyro_hold(누르는 동안 자이로 마우스) | gyro_toggle | key:CTRL+C | mouse:left|right|middle|x1|x2\n; 예: mouse:left = 왼쪽 클릭, key:ALT+TAB = 창 전환, modeshift = 누른 채 패드를 쓰면 시프트 모드\naction=%s\nbit=0x%02X\n\n[grip.right]\n; 오른쪽 백버튼(R4) 동작 (예: mouse:right = 오른쪽 클릭)\naction=%s\nbit=0x%02X\n\n",
              GripString(c.gripLeft).c_str(), c.gripLeft.bit, GripString(c.gripRight).c_str(), c.gripRight.bit);
     s += b;
     const char* act = c.gyro.activate == GyroActivate::Always ? "always" : c.gyro.activate == GyroActivate::RightTouch ? "right_touch" : c.gyro.activate == GyroActivate::LeftTouch ? "left_touch" : c.gyro.activate == GyroActivate::Toggle ? "toggle" : "grip";

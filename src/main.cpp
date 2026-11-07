@@ -206,9 +206,9 @@ private:
         bool off = cfg_.gyro.mode == GyroMode::Off;
         AppendMenuW(gy, MF_STRING | (off ? MF_CHECKED : 0), ID_GYRO + 0, L"끔");
         AppendMenuW(gy, MF_STRING | (!off && cfg_.gyro.activate == GyroActivate::Always ? MF_CHECKED : 0), ID_GYRO + 1, L"마우스: 항상");
-        AppendMenuW(gy, MF_STRING | (!off && cfg_.gyro.activate == GyroActivate::Grip ? MF_CHECKED : 0), ID_GYRO + 2, L"마우스: 그립(gyro_hold) 누르는 동안");
+        AppendMenuW(gy, MF_STRING | (!off && cfg_.gyro.activate == GyroActivate::Grip ? MF_CHECKED : 0), ID_GYRO + 2, L"마우스: 백버튼(L4/R4, gyro_hold) 누르는 동안");
         AppendMenuW(gy, MF_STRING | (!off && cfg_.gyro.activate == GyroActivate::RightTouch ? MF_CHECKED : 0), ID_GYRO + 3, L"마우스: 오른쪽 패드 터치 중");
-        AppendMenuW(gy, MF_STRING | (!off && cfg_.gyro.activate == GyroActivate::Toggle ? MF_CHECKED : 0), ID_GYRO + 4, L"마우스: 토글(gyro_toggle 그립)");
+        AppendMenuW(gy, MF_STRING | (!off && cfg_.gyro.activate == GyroActivate::Toggle ? MF_CHECKED : 0), ID_GYRO + 4, L"마우스: 토글(gyro_toggle 백버튼)");
         AppendMenuW(gy, MF_SEPARATOR, 0, nullptr);
         AppendMenuW(gy, MF_STRING, ID_GYRO_CAL, engine_.Calibrating() ? L"자이로 보정 중..." : L"자이로 보정 (기기를 가만히 두고 2초)");
         AppendMenuW(menu, MF_POPUP, (UINT_PTR)gy, L"자이로");

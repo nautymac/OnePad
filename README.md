@@ -10,15 +10,28 @@
 
 ### 목적
 
-3D One 핸드헬드에 내장된 컨트롤러(터치패드 2개, 백버튼 2개, 자이로)를 **최대한 Steam Deck 컨트롤러처럼** 쓰기 위한 프로그램입니다. 목적은 편의성입니다.
+3D One 핸드헬드에 내장된 컨트롤러(터치패드 2개, 백버튼(L4, R4) 2개, 자이로)를 **최대한 Steam Deck 컨트롤러처럼** 쓰기 위한 프로그램입니다. 목적은 편의성입니다.
 Steam에서는 Steam Input이 이 컨트롤러를 진짜 Steam Deck 컨트롤러로 인식하므로 트랙패드·자이로·백버튼을 Steam 컨트롤러 설정 화면에서 게임별로 매핑할 수 있고,
-Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스, 백버튼이 마우스 버튼으로 동작합니다. 가상 패드 에뮬레이터(ViGEm 등)는 쓰지 않습니다.
+Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스, 백버튼(L4, R4)이 마우스 버튼으로 동작합니다. 가상 패드 에뮬레이터(ViGEm 등)는 쓰지 않습니다.
 
 ### Steam 컨트롤러와 다른 점 (꼭 읽어 주세요)
 
 - **L5 / R5 백버튼이 없습니다.** 3D One에는 백버튼이 좌우 하나씩뿐이라 L4 / R4로만 잡힙니다. Steam 설정에서 L5 / R5에 넣은 동작은 발동하지 않습니다.
 - **터치패드에 물리 클릭이 없습니다.** 그래서 OnePad가 **짧은 탭(톡 치기)을 트랙패드 클릭으로** 바꿔 보냅니다. Steam 설정의 "트랙패드 클릭"에 넣은 동작은 탭으로 발동하고, 두 번 탭은 더블클릭이 됩니다. 손가락을 올려 두거나 움직이는 것은 "터치"일 뿐 클릭이 아니며, 꾹 누르는 압력 클릭도 없습니다.
 - 그 밖의 것(버튼, 스틱, 트리거, 트랙패드 터치·이동, 자이로, Steam/QAM 버튼)은 Steam Deck 컨트롤러와 같이 동작합니다.
+
+### 용어와 예시
+
+- **백버튼(L4, R4)**: 3D One 뒷면의 버튼 두 개. 왼쪽이 L4, 오른쪽이 R4이고 Steam에는 Steam Deck의 L4 / R4로 전달됩니다(펌웨어 이름은 M1/M2).
+  - 예: Steam의 Azahar 설정에서 L4 = Tab → Azahar에서 L4를 누르면 Tab이 들어감.
+  - 예: 데스크톱에서는 L4 = 왼쪽 클릭, R4 = 오른쪽 클릭(onepad.ini `[grip.left]`/`[grip.right]`의 `action=mouse:left` / `mouse:right`). `key:ALT+TAB`처럼 키 조합도 가능.
+- **패드 모드 "마우스 / 스크롤 / D패드"**: OnePad가 패드 좌표를 읽어 직접 변환하는 모드. 기본은 오른쪽 패드 = 마우스, 왼쪽 패드 = 스크롤.
+- **패드 모드 "펌웨어: …"**: 패드 처리를 OnePad가 아니라 **컨트롤러 펌웨어**에 맡기는 모드. Gear 설정 앱에서 고르던 것과 같습니다.
+  - 펌웨어: 터치패드 — Windows 정밀 터치패드로 잡힘(두 손가락 스크롤 등 Windows 제스처, 움직일 때 진동). OnePad의 탭 클릭·민감도는 적용 안 됨.
+  - 펌웨어: 휠 — 마우스 휠로 잡힘.
+  - 펌웨어: 왼쪽 스틱 / 오른쪽 스틱 — Xbox 패드의 스틱으로 잡힘. 예: Steam 없이 돌리는 게임에서 오른쪽 패드를 조준 스틱으로.
+- **시프트**: `action=modeshift`로 둔 백버튼(L4 또는 R4)을 **누르고 있는 동안만** 바뀌는 패드 모드. 키보드 Shift처럼 "누른 채로 다른 기능".
+  - 예: 오른쪽 패드가 평소 마우스, 시프트가 스크롤이면 R4를 누른 채 패드를 밀 때만 스크롤. 기본 설정(백버튼 = 마우스 클릭)에서는 쓰이지 않음.
 
 ### 동작하는 기능
 
@@ -78,7 +91,7 @@ LLVM-MinGW(`winget install MartinStorsjo.LLVM-MinGW.UCRT`) → `build.ps1`. 설�
 
 ### Purpose
 
-OnePad makes the controller built into the abxylute 3D One handheld (two trackpads, two back grips, gyro) behave **as close to a Steam Deck controller as possible**. The goal is convenience.
+OnePad makes the controller built into the abxylute 3D One handheld (two trackpads, two back buttons L4/R4, gyro) behave **as close to a Steam Deck controller as possible**. The goal is convenience.
 Inside Steam, Steam Input sees a genuine Steam Deck controller, so trackpads, gyro and grips can be mapped per game in the Steam controller configurator.
 Outside Steam (desktop, ordinary programs) the trackpads act as a mouse and the grips as mouse buttons. No virtual-gamepad emulator (ViGEm etc.) is involved.
 
@@ -87,6 +100,19 @@ Outside Steam (desktop, ordinary programs) the trackpads act as a mouse and the 
 - **There are no L5 / R5 grips.** The 3D One has one back button per side, exposed as L4 / R4. Anything bound to L5 / R5 in Steam will never fire.
 - **The trackpads have no physical click.** OnePad therefore turns a **short tap into a trackpad click**. Whatever you bind to "trackpad click" in Steam fires on a tap, and a double tap is a double click. Resting or moving a finger is only a "touch", not a click, and there is no pressure click.
 - Everything else (buttons, sticks, triggers, trackpad touch and movement, gyro, Steam/QAM buttons) behaves like a Steam Deck controller.
+
+### Terms and examples
+
+- **Back buttons (L4, R4)**: the two buttons on the back of the 3D One. Left is L4, right is R4, and Steam sees them as the Steam Deck's L4 / R4 (the firmware calls them M1/M2).
+  - Example: in Steam's Azahar configuration L4 = Tab → pressing L4 in Azahar sends Tab.
+  - Example: on the desktop L4 = left click, R4 = right click (`action=mouse:left` / `mouse:right` under `[grip.left]` / `[grip.right]` in onepad.ini). Key combos such as `key:ALT+TAB` work too.
+- **Pad modes "mouse / scroll / dpad"**: OnePad reads the pad coordinates and translates them itself. Default: right pad = mouse, left pad = scroll.
+- **Pad modes "firmware: …"**: the pad is handled by the **controller firmware** instead of OnePad, exactly as the Gear settings app offers.
+  - firmware: touchpad — appears as a Windows precision touchpad (two-finger scroll and other Windows gestures, haptics while moving). OnePad's tap-click and sensitivity do not apply.
+  - firmware: wheel — appears as a mouse wheel.
+  - firmware: left stick / right stick — appears as an Xbox stick. Example: use the right pad as an aiming stick in a game launched without Steam.
+- **Shift**: the pad mode used **only while** a back button set to `action=modeshift` (L4 or R4) is held, like the Shift key on a keyboard.
+  - Example: right pad is mouse normally and scroll in shift mode → it scrolls only while R4 is held. Unused with the default setup (back buttons = mouse clicks).
 
 ### What works
 

@@ -47,7 +47,7 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 | 자이로 → 마우스 (데스크톱, 선택) | ✅ |
 | 로그온 자동 시작, 트레이 아이콘, 컨트롤러가 없으면 아무것도 하지 않음, 종료 시 펌웨어·장치 원복 | ✅ |
 | Azahar(3DS 에뮬레이터) 교착 우회 실행기 + Steam 라이브러리 등록 | ✅ |
-| 3D One 단축키(선택): AstraDepth3D Ctrl+F4 종료 차단, 오른쪽 Alt = 한/영 | ✅ |
+| 3D One 단축키(선택, AutoHotkey v2 자동 설치): ① AstraDepth3D가 Ctrl+F4를 전역 종료 단축키로 잡아 두는데 geo-11 같은 3D 픽스 도구의 단축키와 겹치면 게임 중 앱이 꺼지므로 Ctrl+F4를 먼저 선점해 차단 ② 다국어 키보드 사용자가 입력 언어 전환(한/영 등)을 오른쪽 Alt 한 키로 하도록 변환 | ✅ |
 | L5 / R5 백버튼 | ✖ 하드웨어에 없음 |
 | 트랙패드 물리 클릭·압력 클릭 | ✖ 탭으로 대체 |
 | Steam 없이 Steam Deck 기능(Steam의 트랙볼·자이로 조준) | ✖ Steam Input이 필요 |
@@ -128,7 +128,7 @@ Outside Steam (desktop, ordinary programs) the trackpads act as a mouse and the 
 | Gyro → mouse on the desktop (optional) | ✅ |
 | Starts at logon, tray icon, does nothing when the controller is absent, restores firmware and device nodes on exit | ✅ |
 | Deadlock-free launcher for Azahar (3DS emulator) and registration in the Steam library | ✅ |
-| Optional 3D One hotkeys: block Ctrl+F4 killing AstraDepth3D, Right Alt = Korean/English toggle | ✅ |
+| Optional 3D One hotkeys (installs AutoHotkey v2 automatically): ① AstraDepth3D registers Ctrl+F4 as its global quit hotkey, which collides with hotkeys of 3D-fix tools such as geo-11 and kills the app mid-game, so Ctrl+F4 is pre-empted and blocked ② for multilingual keyboards, Right Alt becomes the input-language toggle (Korean/English etc.) | ✅ |
 | L5 / R5 grips | ✖ not present on the hardware |
 | Physical or pressure trackpad click | ✖ replaced by tap |
 | Steam Deck features without Steam (Steam's trackball / gyro aim) | ✖ needs Steam Input itself |

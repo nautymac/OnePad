@@ -50,7 +50,7 @@ ko.CompHidHide=HidHide 드라이버 (실제 Xbox 패드를 Steam/게임에서 �
 ko.CompUsbip=usbip-win2 드라이버 (가상 Steam Deck 장치 전송 — 필수)
 ko.CompAzahar=Azahar 2126.1 (3DS 에뮬레이터) + 교착 우회 실행기 + 바로가기
 ko.CompSteamShortcut=Azahar를 Steam 라이브러리에 비Steam 게임으로 등록 (Steam이 잠시 종료됨)
-ko.CompAhk=AutoHotkey v2 + 3D One 단축키 (AstraDepth3D Ctrl+F4 차단, 오른쪽 Alt = 한/영)
+ko.CompAhk=AutoHotkey v2 + 3D One 단축키 (geo-11 등 3D 픽스 단축키와 겹쳐 AstraDepth3D가 꺼지는 Ctrl+F4 차단, 오른쪽 Alt = 입력 언어 전환)
 ko.CompAstra=AstraDepth3D 자동 시작 작업 (AstraDepth3D가 설치된 경우)
 ko.CompPersonal=이 PC의 Azahar 설정·세이브 복원 (개인용 빌드 전용)
 ko.AzaharDirTitle=Azahar 설치 폴더
@@ -63,7 +63,7 @@ en.CompHidHide=HidHide driver (hides the real Xbox pad from Steam/games — requ
 en.CompUsbip=usbip-win2 driver (transport for the virtual Steam Deck — required)
 en.CompAzahar=Azahar 2126.1 (3DS emulator) + deadlock-free launcher + shortcuts
 en.CompSteamShortcut=Add Azahar to the Steam library as a non-Steam game (Steam is closed briefly)
-en.CompAhk=AutoHotkey v2 + 3D One hotkeys (block Ctrl+F4 for AstraDepth3D, Right Alt = Korean/English toggle)
+en.CompAhk=AutoHotkey v2 + 3D One hotkeys (block Ctrl+F4 that kills AstraDepth3D when 3D-fix tools like geo-11 share the hotkey; Right Alt = input language toggle)
 en.CompAstra=AstraDepth3D autostart task (only if AstraDepth3D is installed)
 en.CompPersonal=Restore this PC's Azahar config and saves (personal build only)
 en.AzaharDirTitle=Azahar folder

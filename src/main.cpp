@@ -175,11 +175,17 @@ private:
         AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
         for (int i = 0; i < 8; i++) AppendMenuW(m, MF_STRING | (pc.shiftMode == (PadMode)i ? MF_CHECKED : 0), base + 10 + i, (std::wstring(L"시프트: ") + PadModeLabel((PadMode)i)).c_str());
         AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
-        static const double sens[] = {0.8, 1.2, 1.6, 2.2, 3.0, 4.0};
-        static const wchar_t* sensName[] = {L"매우 느림", L"느림", L"보통", L"빠름", L"매우 빠름", L"최대"};
-        for (int i = 0; i < 6; i++) {
-            wchar_t lbl[64]; swprintf(lbl, 64, L"민감도: %s (%.1f)", sensName[i], sens[i]);
-            AppendMenuW(m, MF_STRING | (std::fabs(pc.sensitivity - sens[i]) < 0.05 ? MF_CHECKED : 0), base + 20 + i, lbl);
+        // 2026-11-07: re-centred on the value in use (0.8 = "보통"); the user wanted room below it.
+        static const double sens[] = {0.4, 0.5, 0.65, 0.8, 1.0, 1.2, 1.6};
+        static const int steps[] = {80, 64, 50, 40, 32, 25, 20};   // scroll mode: pad units per wheel notch (40 = "보통", bigger = slower)
+        static const wchar_t* sensName[] = {L"가장 느림", L"매우 느림", L"느림", L"보통", L"빠름", L"매우 빠름", L"최대"};
+        bool scroll = pc.mode == PadMode::Scroll;   // scroll ignores `sensitivity`; its speed is scroll_step
+        for (int i = 0; i < 7; i++) {
+            wchar_t lbl[64];
+            if (scroll) swprintf(lbl, 64, L"스크롤 속도: %s (step %d)", sensName[i], steps[i]);
+            else swprintf(lbl, 64, L"민감도: %s (%.2f)", sensName[i], sens[i]);
+            bool on = scroll ? pc.scrollStep == steps[i] : std::fabs(pc.sensitivity - sens[i]) < 0.05;
+            AppendMenuW(m, MF_STRING | (on ? MF_CHECKED : 0), base + 20 + i, lbl);
         }
         return m;
     }
@@ -238,9 +244,11 @@ private:
         else if (id >= ID_PAD_R + 10 && id < ID_PAD_R + 18) cfg_.right.shiftMode = (PadMode)(id - ID_PAD_R - 10);
         else if (id >= ID_PAD_L && id < ID_PAD_L + 8) cfg_.left.mode = (PadMode)(id - ID_PAD_L);
         else if (id >= ID_PAD_L + 10 && id < ID_PAD_L + 18) cfg_.left.shiftMode = (PadMode)(id - ID_PAD_L - 10);
-        else if ((id >= ID_PAD_R + 20 && id < ID_PAD_R + 26) || (id >= ID_PAD_L + 20 && id < ID_PAD_L + 26)) {
-            static const double sens[] = {0.8, 1.2, 1.6, 2.2, 3.0, 4.0};
-            bool r = id < ID_PAD_L; (r ? cfg_.right : cfg_.left).sensitivity = sens[id - (r ? ID_PAD_R : ID_PAD_L) - 20];
+        else if ((id >= ID_PAD_R + 20 && id < ID_PAD_R + 27) || (id >= ID_PAD_L + 20 && id < ID_PAD_L + 27)) {
+            static const double sens[] = {0.4, 0.5, 0.65, 0.8, 1.0, 1.2, 1.6};
+            static const int steps[] = {80, 64, 50, 40, 32, 25, 20};
+            bool r = id < ID_PAD_L; PadConfig& pc = r ? cfg_.right : cfg_.left; int i = id - (r ? ID_PAD_R : ID_PAD_L) - 20;
+            if (pc.mode == PadMode::Scroll) pc.scrollStep = steps[i]; else pc.sensitivity = sens[i];
         }
 
         else if (id == ID_HAPTIC_R) cfg_.right.haptics = !cfg_.right.haptics;

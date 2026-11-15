@@ -79,7 +79,7 @@ public:
             LOGE("SAPJoy_Create failed");
         }
         hidhide_.Locate(cfg_.hidhide.cli);
-        { std::vector<std::wstring> w; for (auto& a : cfg_.hidhide.directApps) w.push_back(Widen(a)); hidhide_.SetExtraApps(w); }
+        { std::vector<std::wstring> w; for (auto& a : cfg_.hidhide.directApps) w.push_back(Widen(a)); hidhide_.SetExtraApps(w); hidhide_.SetInverse(cfg_.hidhide.mode == "inverse", SteamExes()); }
         UpdateCloak(true);
         if (cfg_.deck.enabled) StartDeck();
         // Self-registering logon autostart: the first run installs the Task Scheduler entry, nothing else to do by hand.
@@ -273,6 +273,29 @@ private:
 
     // Routing: while Steam holds the Deck persona, pads/grips/gyro go to Steam only when a Steam game is in the
     // foreground (games_only); on the desktop OnePad's own trackpad engine keeps working (tap, drag, scroll, gyro).
+    // Steam processes that open controllers: steam.exe and steamwebhelper.exe (under bin\cef\<variant>\). Used for HidHide inverse mode.
+    static std::vector<std::wstring> SteamExes() {
+        std::vector<std::wstring> v; wchar_t buf[MAX_PATH]; DWORD n = sizeof buf; HKEY k;
+        std::wstring dir;
+        if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Valve\\Steam", 0, KEY_READ, &k) == ERROR_SUCCESS) {
+            if (RegQueryValueExW(k, L"SteamPath", nullptr, nullptr, (BYTE*)buf, &n) == ERROR_SUCCESS) dir = buf;
+            RegCloseKey(k);
+        }
+        if (dir.empty()) dir = L"C:\\Program Files (x86)\\Steam";
+        for (auto& c : dir) if (c == L'/') c = L'\\';
+        v.push_back(dir + L"\\steam.exe");
+        WIN32_FIND_DATAW fd; HANDLE h = FindFirstFileW((dir + L"\\bin\\cef\\*").c_str(), &fd);
+        if (h != INVALID_HANDLE_VALUE) {
+            do {
+                if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && fd.cFileName[0] != L'.') {
+                    std::wstring p = dir + L"\\bin\\cef\\" + fd.cFileName + L"\\steamwebhelper.exe";
+                    if (GetFileAttributesW(p.c_str()) != INVALID_FILE_ATTRIBUTES) v.push_back(p);
+                }
+            } while (FindNextFileW(h, &fd));
+            FindClose(h);
+        }
+        return v;
+    }
     static std::wstring ForegroundExePath() {
         HWND fg = GetForegroundWindow(); if (!fg) return L"";
         DWORD pid = 0; GetWindowThreadProcessId(fg, &pid); if (!pid) return L"";
@@ -326,7 +349,7 @@ private:
     static const wchar_t* XboxNodePrefix() { return L"USB\\VID_2993&PID_0012&MI_00"; }
     bool WantHide(const std::string& mode) {
         bool want;
-        if (mode == "always") want = true;
+        if (mode == "always" || mode == "inverse") want = true;   // inverse: like always, but hidden only from Steam (HidHide inverse list)
         else if (mode == "never") want = false;
         else {
             // auto: hide while Steam runs, and for a grace period after Steam was last seen (or since our own start).
@@ -338,7 +361,7 @@ private:
             bool steamish = (now - steamSeenTick_) < (uint64_t)cfg_.hidhide.graceSec * 1000ULL;
             want = deckRunning_ && usbip_.Attached() && steamish;
         }
-        if (!vendor_.Present() && mode != "always") want = false;   // auto/never: controller absent -> nothing to hide; always: keep the cloak so a re-plug cannot race Steam
+        if (!vendor_.Present() && mode != "always" && mode != "inverse") want = false;   // auto/never: controller absent -> nothing to hide; always: keep the cloak so a re-plug cannot race Steam
         return want;
     }
     void UpdateCloak(bool force) {
@@ -540,7 +563,7 @@ private:
         LOGI("shutting down");
         engine_.SetEnabled(false);
         StopDeck();
-        if (cfg_.hidhide.mode == "always") LOGI("hidhide: mode=always, cloak stays ON after exit (use --restore or --uninstall to lift it)");
+        if (cfg_.hidhide.mode == "always" || cfg_.hidhide.mode == "inverse") LOGI("hidhide: mode=%s, cloak stays ON after exit (use --restore or --uninstall to lift it)", cfg_.hidhide.mode.c_str());
         else if (keepCloak_ && hidhide_.Cloaked() && ProcessRunning(L"steam.exe")) LOGI("hidhide: cloak kept ON across restart"); else hidhide_.Release();
         if (cfg_.restoreOnExit) RestoreFirmware();
         vendor_.Release();

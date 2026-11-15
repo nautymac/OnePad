@@ -42,8 +42,8 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 | 트랙패드 **탭 = 트랙패드 클릭**, 두 번 탭 = 더블클릭 (Steam 안팎 모두) | ✅ |
 | 데스크톱·비Steam 프로그램: 오른쪽 패드 = 마우스 포인터, 왼쪽 패드 = 스크롤 휠, 탭 = 왼쪽 클릭. 민감도·스크롤 속도·축 반전 설정 | ✅ |
 | 데스크톱: 왼쪽 백버튼 = 왼쪽 클릭, 오른쪽 백버튼 = 오른쪽 클릭 (키 조합, 모드 전환, 자이로 홀드로 바꿀 수 있음) | ✅ |
-| 실제 Xbox 패드 숨김(HidHide) — Steam과 게임에는 Steam Deck 컨트롤러 하나만 보여 2P 중복 입력이 없음 | ✅ |
-| **직접 읽기 앱**(`[hidhide] direct_apps`): 지정한 프로그램(예: Ryujinx)만 숨김에서 제외해 실제 Xbox 패드를 직접 읽음 → Steam·OnePad를 거치지 않아 입력 지연 최소. 그 앱이 앞에 있으면 Steam으로는 아무것도 보내지 않고 트랙패드는 OnePad 마우스로 동작 | ✅ |
+| **실제 Xbox 패드를 Steam에서만 숨김**(HidHide 역방향 모드, 기본): Steam은 Steam Deck 컨트롤러 하나만 보고, 그 밖의 모든 게임·에뮬레이터·프로그램은 실제 Xbox 패드를 **직접** 읽음 → 앱별 설정 없이 입력 지연 최소. Steam이 실제 패드를 2P로 잡아 입력이 겹치는 일도 없음 | ✅ |
+| 숨김 모드 선택(`[hidhide] mode`): `inverse`(기본, 위) / `always`(모든 앱에서 숨김, Steam 게임은 Steam Input 가상 패드만 보임; 예외 앱은 `direct_apps`) / `auto` / `never` | ✅ |
 | 패드별 펌웨어 진동(햅틱) 켜기/끄기, 펌웨어 백버튼 매핑 해제·종료 시 원복 | ✅ |
 | 자이로 → 마우스 (데스크톱, 선택) | ✅ |
 | 로그온 자동 시작, 트레이 아이콘, 컨트롤러가 없으면 아무것도 하지 않음, 종료 시 펌웨어·장치 원복 | ✅ |
@@ -82,7 +82,8 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 ### 설정
 
 `%LOCALAPPDATA%\OnePad\onepad.ini`. 자주 쓰는 항목(패드 모드, 민감도, 스크롤 속도, 햅틱, 자이로, Deck 에뮬 켜기/끄기)은 트레이 메뉴에서 바꿀 수 있습니다.
-- 지연에 민감한 에뮬레이터는 `[hidhide] direct_apps=D:\Ryujinx\Ryujinx.exe`처럼 등록하면 실제 패드를 직접 읽습니다(여러 개는 `;`로 구분, OnePad 재시작 필요). 그 앱을 Steam에서 띄운다면 Steam 라이브러리 → 게임 → 관리 → 컨트롤러 설정에서 **Steam 입력을 끄세요**. 그래야 가상 Deck이 아니라 실제 패드 하나만 보입니다.
+- 기본 `[hidhide] mode=inverse`에서는 Steam을 거치지 않는 모든 프로그램이 실제 패드를 직접 읽으므로 따로 등록할 것이 없습니다. 지연이 중요한 에뮬레이터(Ryujinx 등)는 **Steam 밖에서 바로가기로 실행**하면 가장 빠릅니다. Steam에서 띄우면 Steam Input의 가상 패드를 거치므로 지연이 조금 늘고, 그래도 Steam에서 띄우고 싶다면 그 게임의 Steam 입력을 끄세요(라이브러리 → 게임 → 관리 → 컨트롤러 설정).
+- `mode=always`(모든 앱에서 숨김)를 쓸 때만 `direct_apps=D:\Ryujinx\Ryujinx.exe`처럼 예외 앱을 적습니다(여러 개는 `;`, OnePad 재시작 필요).
 전체 키 설명은 [docs/설계-설정.md](docs/설계-설정.md), 재설치 절차와 함정 모음은 [docs/재설치-가이드.md](docs/재설치-가이드.md)에 있습니다.
 
 ### 빌드
@@ -127,8 +128,8 @@ Outside Steam (desktop, ordinary programs) the trackpads act as a mouse and the 
 | Trackpad **tap = trackpad click**, double tap = double click (inside and outside Steam) | ✅ |
 | Desktop / non-Steam apps: right pad = mouse pointer, left pad = scroll wheel, tap = left click; sensitivity, scroll speed and axis flip are configurable | ✅ |
 | Desktop: left grip = left click, right grip = right click (configurable: key combos, mode shift, gyro hold) | ✅ |
-| Hides the real Xbox pad (HidHide) so Steam and games see exactly one controller, no duplicate player-2 input | ✅ |
-| **Direct apps** (`[hidhide] direct_apps`): listed programs (e.g. Ryujinx) are exempt from hiding and read the real Xbox pad themselves → no Steam/OnePad hop, lowest input latency. While such an app is in front nothing is sent to Steam and the trackpads keep working as a mouse | ✅ |
+| **Real Xbox pad hidden from Steam only** (HidHide inverse mode, default): Steam sees exactly one Steam Deck controller, while every other game, emulator and program reads the real Xbox pad **directly** → lowest input latency with nothing to configure per app, and Steam can never adopt the real pad as player 2 | ✅ |
+| Hiding mode (`[hidhide] mode`): `inverse` (default, above) / `always` (hidden from every app; Steam games see only Steam Input's virtual pad; exceptions via `direct_apps`) / `auto` / `never` | ✅ |
 | Per-pad firmware haptics on/off; firmware grip mapping unmapped while running and restored on exit | ✅ |
 | Gyro → mouse on the desktop (optional) | ✅ |
 | Starts at logon, tray icon, does nothing when the controller is absent, restores firmware and device nodes on exit | ✅ |
@@ -167,7 +168,8 @@ Requirements: Windows 11, abxylute 3D One (controller VID 2993 / PID 0012), Stea
 ### Configuration
 
 `%LOCALAPPDATA%\OnePad\onepad.ini`. The tray menu covers the common options (pad modes, sensitivity, scroll speed, haptics, gyro, Deck emulation on/off).
-- For latency-sensitive emulators add them as direct apps, e.g. `[hidhide] direct_apps=D:\Ryujinx\Ryujinx.exe` (separate several with `;`, restart OnePad). If you launch such an app from Steam, **disable Steam Input for that game** (library → game → Manage → Controller settings) so it sees only the real pad, not the virtual Deck.
+- With the default `[hidhide] mode=inverse` every program outside Steam reads the real pad directly, so nothing needs registering. Latency-sensitive emulators (Ryujinx etc.) are fastest when **launched outside Steam** from their own shortcut. Launching them from Steam routes input through Steam Input's virtual pad (a little slower); if you still want that, disable Steam Input for that game (library → game → Manage → Controller settings).
+- Only with `mode=always` (hidden from every app) do you list exceptions as `direct_apps=D:\Ryujinx\Ryujinx.exe` (separate several with `;`, restart OnePad).
 Full key reference (Korean): [docs/설계-설정.md](docs/설계-설정.md). Reinstall guide and pitfalls (Korean): [docs/재설치-가이드.md](docs/재설치-가이드.md).
 
 ### Build

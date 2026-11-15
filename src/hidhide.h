@@ -70,11 +70,25 @@ public:
     // Whitelist OnePad and register the controller's Xbox nodes as hidden (the cloak itself is switched separately).
     std::vector<std::wstring> extraApps_;
     void SetExtraApps(const std::vector<std::wstring>& apps) { extraApps_ = apps; }
+    // Inverse mode (HidHide "inverse application list"): the registered apps are the ONLY ones that cannot see the
+    // hidden pad. Register just Steam, and every game/emulator/desktop app reads the real pad directly (lowest latency)
+    // while Steam still sees only the virtual Deck. Nothing per app to configure.
+    bool inverse_ = false; std::vector<std::wstring> blockApps_;
+    void SetInverse(bool on, const std::vector<std::wstring>& block) { inverse_ = on; blockApps_ = block; }
     void Prepare() {
         if (!available_) return;
         wchar_t exe[MAX_PATH]; GetModuleFileNameW(nullptr, exe, MAX_PATH);
-        Run(std::wstring(L"--app-reg \"") + exe + L"\"");
-        for (auto& a : extraApps_) Run(L"--app-reg \"" + a + L"\"");   // [hidhide] direct_apps: these read the real pad themselves
+        if (inverse_) {
+            Run(std::wstring(L"--app-unreg \"") + exe + L"\"");           // OnePad must stay able to see the pad (rumble via XInput)
+            for (auto& a : extraApps_) Run(L"--app-unreg \"" + a + L"\"");
+            for (auto& a : blockApps_) Run(L"--app-reg \"" + a + L"\"");   // Steam processes: blocked
+            Run(L"--inv-on");
+        } else {
+            Run(L"--inv-off");
+            for (auto& a : blockApps_) Run(L"--app-unreg \"" + a + L"\"");
+            Run(std::wstring(L"--app-reg \"") + exe + L"\"");
+            for (auto& a : extraApps_) Run(L"--app-reg \"" + a + L"\"");   // [hidhide] direct_apps: these read the real pad themselves
+        }
         hidden_.clear();
         for (auto& id : FindInstanceIds(L"USB", L"USB\\VID_2993&PID_0012&MI_00")) hidden_.push_back(id);
         // The XInput HID node alternates between IG_00 and IG_01 across re-enumerations: hide every instance ever seen
@@ -98,6 +112,7 @@ public:
     void Release() {   // uncloak and forget the nodes (on exit / --restore)
         if (!available_) return;
         Run(L"--cloak-off");
+        if (inverse_) { Run(L"--inv-off"); for (auto& a : blockApps_) Run(L"--app-unreg \"" + a + L"\""); }
         for (auto& id : hidden_) Run(L"--dev-unhide \"" + id + L"\"");
         for (auto& id : hidden_) if (id.rfind(L"USB\\", 0) == 0) RestartDevNode(id);
         cloaked_ = false; cloakKnown_ = true; prepared_ = false;

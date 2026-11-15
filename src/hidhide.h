@@ -68,10 +68,13 @@ public:
     bool Cloaked() const { return cloaked_; }
 
     // Whitelist OnePad and register the controller's Xbox nodes as hidden (the cloak itself is switched separately).
+    std::vector<std::wstring> extraApps_;
+    void SetExtraApps(const std::vector<std::wstring>& apps) { extraApps_ = apps; }
     void Prepare() {
         if (!available_) return;
         wchar_t exe[MAX_PATH]; GetModuleFileNameW(nullptr, exe, MAX_PATH);
         Run(std::wstring(L"--app-reg \"") + exe + L"\"");
+        for (auto& a : extraApps_) Run(L"--app-reg \"" + a + L"\"");   // [hidhide] direct_apps: these read the real pad themselves
         hidden_.clear();
         for (auto& id : FindInstanceIds(L"USB", L"USB\\VID_2993&PID_0012&MI_00")) hidden_.push_back(id);
         // The XInput HID node alternates between IG_00 and IG_01 across re-enumerations: hide every instance ever seen

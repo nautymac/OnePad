@@ -79,6 +79,7 @@ public:
             LOGE("SAPJoy_Create failed");
         }
         hidhide_.Locate(cfg_.hidhide.cli);
+        { std::vector<std::wstring> w; for (auto& a : cfg_.hidhide.directApps) w.push_back(Widen(a)); hidhide_.SetExtraApps(w); }
         UpdateCloak(true);
         if (cfg_.deck.enabled) StartDeck();
         // Self-registering logon autostart: the first run installs the Task Scheduler entry, nothing else to do by hand.
@@ -272,14 +273,30 @@ private:
 
     // Routing: while Steam holds the Deck persona, pads/grips/gyro go to Steam only when a Steam game is in the
     // foreground (games_only); on the desktop OnePad's own trackpad engine keeps working (tap, drag, scroll, gyro).
-    static bool ForegroundIsSteamClient() {   // steam.exe / steamwebhelper.exe window in front (Big Picture, library): buttons still go to Steam
-        HWND fg = GetForegroundWindow(); if (!fg) return false;
-        DWORD pid = 0; GetWindowThreadProcessId(fg, &pid); if (!pid) return false;
-        HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid); if (!h) return false;
+    static std::wstring ForegroundExePath() {
+        HWND fg = GetForegroundWindow(); if (!fg) return L"";
+        DWORD pid = 0; GetWindowThreadProcessId(fg, &pid); if (!pid) return L"";
+        HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid); if (!h) return L"";
         wchar_t path[MAX_PATH]; DWORD n = MAX_PATH; bool ok = QueryFullProcessImageNameW(h, 0, path, &n) != 0; CloseHandle(h);
-        if (!ok) return false;
-        const wchar_t* base = wcsrchr(path, L'\\'); base = base ? base + 1 : path;
-        return _wcsicmp(base, L"steam.exe") == 0 || _wcsicmp(base, L"steamwebhelper.exe") == 0;
+        return ok ? std::wstring(path) : L"";
+    }
+    static bool ForegroundIsSteamClient() {   // steam.exe / steamwebhelper.exe window in front (Big Picture, library): buttons still go to Steam
+        std::wstring p = ForegroundExePath(); if (p.empty()) return false;
+        size_t s = p.find_last_of(L'\\'); std::wstring base = s == std::wstring::npos ? p : p.substr(s + 1);
+        return _wcsicmp(base.c_str(), L"steam.exe") == 0 || _wcsicmp(base.c_str(), L"steamwebhelper.exe") == 0;
+    }
+    // "Direct" apps ([hidhide] direct_apps): whitelisted in HidHide so they read the real Xbox pad themselves (lowest
+    // latency, no Steam/OnePad hop). While one is in front nothing is sent to Steam and OnePad's own pad engine stays on.
+    bool ForegroundIsDirectApp() {
+        if (cfg_.hidhide.directApps.empty()) return false;
+        std::wstring p = ForegroundExePath(); if (p.empty()) return false;
+        for (auto& a : cfg_.hidhide.directApps) {
+            std::wstring w = Widen(a);
+            if (_wcsicmp(p.c_str(), w.c_str()) == 0) return true;
+            size_t s = p.find_last_of(L'\\'), t = w.find_last_of(L'\\');   // also accept a bare exe name
+            if (t == std::wstring::npos && s != std::wstring::npos && _wcsicmp(p.c_str() + s + 1, w.c_str()) == 0) return true;
+        }
+        return false;
     }
     static bool ForegroundIsSteamGame() {
         HWND fg = GetForegroundWindow(); if (!fg) return false;
@@ -292,11 +309,13 @@ private:
         return game;
     }
     void ApplyEnabled() {
-        bool toSteam = deckClaimed_ && cfg_.deck.padsToSteam != "never" && (cfg_.deck.padsToSteam != "games_only" || ForegroundIsSteamGame() || ForegroundIsSteamClient());
+        bool direct = ForegroundIsDirectApp();
+        if (direct != directApp_) { directApp_ = direct; LOGI("routing: direct app %s (real pad read by the app itself, nothing to Steam)", direct ? "in front" : "left"); }
+        bool toSteam = !direct && deckClaimed_ && cfg_.deck.padsToSteam != "never" && (cfg_.deck.padsToSteam != "games_only" || ForegroundIsSteamGame() || ForegroundIsSteamClient());
         if (toSteam != padsToSteam_) { padsToSteam_ = toSteam; LOGI("routing: pads/grips/gyro -> %s", toSteam ? "Steam (game in front)" : "OnePad engine"); }
         deck_.SetPassPads(toSteam);
         engine_.SetEnabled(cfg_.enabled && !toSteam);
-        bool btn = deckClaimed_ && (cfg_.deck.buttonsToSteam == "always" || toSteam || ForegroundIsSteamGame() || ForegroundIsSteamClient());
+        bool btn = !direct && deckClaimed_ && (cfg_.deck.buttonsToSteam == "always" || toSteam || ForegroundIsSteamGame() || ForegroundIsSteamClient());
         if (btn != buttonsToSteam_) { buttonsToSteam_ = btn; LOGI("routing: buttons/sticks/triggers -> %s", btn ? "Steam" : "idle (desktop: real XInput pad serves apps)"); }
         deck_.SetPassButtons(btn);
         deck_.SetPassGrips(btn);                       // L4/R4 to Steam in games (Steam config decides), OnePad mouse clicks elsewhere
@@ -343,6 +362,7 @@ private:
         if (deckRunning_) {
             XInputSnapshot x = xinput_.Read(0);
             deck_.Update(s, x, (s.buttons3 & cfg_.gripLeft.bit) != 0, (s.buttons3 & cfg_.gripRight.bit) != 0);
+            usbip_.Kick();   // push the new state to Steam immediately instead of at the next pacer tick
         }
     }
 
@@ -533,7 +553,7 @@ private:
     Engine engine_{out_};
     Vendor vendor_;
     DeckDevice deck_; UsbipServer usbip_; XInputReader xinput_; bool deckRunning_ = false, deckClaimed_ = false;
-    HidHide hidhide_; unsigned cloakTicks_ = 0; uint64_t steamSeenTick_ = 0; bool autostartOn_ = false, keepCloak_ = false, deckAttached_ = false, applyRetry_ = false, xboxHidden_ = false, xboxHideFailed_ = false, padsToSteam_ = true, buttonsToSteam_ = true; uint64_t detachDueTick_ = 0;
+    HidHide hidhide_; unsigned cloakTicks_ = 0; uint64_t steamSeenTick_ = 0; bool autostartOn_ = false, keepCloak_ = false, directApp_ = false, deckAttached_ = false, applyRetry_ = false, xboxHidden_ = false, xboxHideFailed_ = false, padsToSteam_ = true, buttonsToSteam_ = true; uint64_t detachDueTick_ = 0;
     FirmwareBackup backup_, lastApplied_;
     bool keymapApplied_ = false, devicePresent_ = false, trayAdded_ = false, shutdown_ = false;
     HWND hwnd_ = nullptr; UINT taskbarCreated_ = 0; HANDLE stopEvent_ = nullptr; unsigned timerTicks_ = 0;

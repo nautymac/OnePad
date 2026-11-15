@@ -45,6 +45,9 @@ public:
         LOGI("usbip: server listening on 127.0.0.1:%u busid=%s", port, busid.c_str());
         return true;
     }
+    // Complete a pending interrupt IN right now (called when a fresh controller report arrived) instead of
+    // waiting for the next 4 ms pacer tick: cuts up to one tick of latency off every input.
+    void Kick() { if (kick_) SetEvent(kick_); }
     void Stop() {
         if (!running_) return;
         running_ = false;
@@ -237,8 +240,10 @@ private:
         LARGE_INTEGER due; due.QuadPart = -10000LL * model_.frameIntervalMs;
         SetWaitableTimer(timer, &due, model_.frameIntervalMs, nullptr, nullptr, FALSE);
         uint8_t frame[64];
+        HANDLE waits[2] = {timer, kick_};
         while (running_) {
-            if (WaitForSingleObject(timer, 100) != WAIT_OBJECT_0) continue;
+            DWORD w = WaitForMultipleObjects(2, waits, FALSE, 100);
+            if (w != WAIT_OBJECT_0 && w != WAIT_OBJECT_0 + 1) continue;   // timer tick or Kick()
             if (!attached_) continue;
             PendingUrb u{0, 0}; bool have = false;
             { std::lock_guard<std::mutex> g(queueMutex_); if (!intrQueue_.empty()) { u = intrQueue_.front(); intrQueue_.pop_front(); have = true; } }
@@ -256,6 +261,7 @@ private:
     SOCKET listen_ = INVALID_SOCKET; std::atomic<SOCKET> client_{INVALID_SOCKET};
     std::atomic<bool> running_{false}, attached_{false}; std::atomic<uint64_t> urbsDone_{0};
     std::thread acceptThread_, pacerThread_;
+    HANDLE kick_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);   // auto-reset: one Kick() -> one immediate frame
     std::mutex sendMutex_, queueMutex_;
     std::deque<PendingUrb> intrQueue_; std::deque<uint32_t> parked_;
 };

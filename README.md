@@ -43,6 +43,7 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 | 데스크톱·비Steam 프로그램: 오른쪽 패드 = 마우스 포인터, 왼쪽 패드 = 스크롤 휠, 탭 = 왼쪽 클릭. 민감도·스크롤 속도·축 반전 설정 | ✅ |
 | 데스크톱: 왼쪽 백버튼 = 왼쪽 클릭, 오른쪽 백버튼 = 오른쪽 클릭 (키 조합, 모드 전환, 자이로 홀드로 바꿀 수 있음) | ✅ |
 | 실제 Xbox 패드 숨김(HidHide) — Steam과 게임에는 Steam Deck 컨트롤러 하나만 보여 2P 중복 입력이 없음 | ✅ |
+| **직접 읽기 앱**(`[hidhide] direct_apps`): 지정한 프로그램(예: Ryujinx)만 숨김에서 제외해 실제 Xbox 패드를 직접 읽음 → Steam·OnePad를 거치지 않아 입력 지연 최소. 그 앱이 앞에 있으면 Steam으로는 아무것도 보내지 않고 트랙패드는 OnePad 마우스로 동작 | ✅ |
 | 패드별 펌웨어 진동(햅틱) 켜기/끄기, 펌웨어 백버튼 매핑 해제·종료 시 원복 | ✅ |
 | 자이로 → 마우스 (데스크톱, 선택) | ✅ |
 | 로그온 자동 시작, 트레이 아이콘, 컨트롤러가 없으면 아무것도 하지 않음, 종료 시 펌웨어·장치 원복 | ✅ |
@@ -81,6 +82,7 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 ### 설정
 
 `%LOCALAPPDATA%\OnePad\onepad.ini`. 자주 쓰는 항목(패드 모드, 민감도, 스크롤 속도, 햅틱, 자이로, Deck 에뮬 켜기/끄기)은 트레이 메뉴에서 바꿀 수 있습니다.
+- 지연에 민감한 에뮬레이터는 `[hidhide] direct_apps=D:\Ryujinx\Ryujinx.exe`처럼 등록하면 실제 패드를 직접 읽습니다(여러 개는 `;`로 구분, OnePad 재시작 필요). 그 앱을 Steam에서 띄운다면 Steam 라이브러리 → 게임 → 관리 → 컨트롤러 설정에서 **Steam 입력을 끄세요**. 그래야 가상 Deck이 아니라 실제 패드 하나만 보입니다.
 전체 키 설명은 [docs/설계-설정.md](docs/설계-설정.md), 재설치 절차와 함정 모음은 [docs/재설치-가이드.md](docs/재설치-가이드.md)에 있습니다.
 
 ### 빌드
@@ -126,6 +128,7 @@ Outside Steam (desktop, ordinary programs) the trackpads act as a mouse and the 
 | Desktop / non-Steam apps: right pad = mouse pointer, left pad = scroll wheel, tap = left click; sensitivity, scroll speed and axis flip are configurable | ✅ |
 | Desktop: left grip = left click, right grip = right click (configurable: key combos, mode shift, gyro hold) | ✅ |
 | Hides the real Xbox pad (HidHide) so Steam and games see exactly one controller, no duplicate player-2 input | ✅ |
+| **Direct apps** (`[hidhide] direct_apps`): listed programs (e.g. Ryujinx) are exempt from hiding and read the real Xbox pad themselves → no Steam/OnePad hop, lowest input latency. While such an app is in front nothing is sent to Steam and the trackpads keep working as a mouse | ✅ |
 | Per-pad firmware haptics on/off; firmware grip mapping unmapped while running and restored on exit | ✅ |
 | Gyro → mouse on the desktop (optional) | ✅ |
 | Starts at logon, tray icon, does nothing when the controller is absent, restores firmware and device nodes on exit | ✅ |
@@ -164,6 +167,7 @@ Requirements: Windows 11, abxylute 3D One (controller VID 2993 / PID 0012), Stea
 ### Configuration
 
 `%LOCALAPPDATA%\OnePad\onepad.ini`. The tray menu covers the common options (pad modes, sensitivity, scroll speed, haptics, gyro, Deck emulation on/off).
+- For latency-sensitive emulators add them as direct apps, e.g. `[hidhide] direct_apps=D:\Ryujinx\Ryujinx.exe` (separate several with `;`, restart OnePad). If you launch such an app from Steam, **disable Steam Input for that game** (library → game → Manage → Controller settings) so it sees only the real pad, not the virtual Deck.
 Full key reference (Korean): [docs/설계-설정.md](docs/설계-설정.md). Reinstall guide and pitfalls (Korean): [docs/재설치-가이드.md](docs/재설치-가이드.md).
 
 ### Build

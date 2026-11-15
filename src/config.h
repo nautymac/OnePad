@@ -121,7 +121,7 @@ struct DeckConfig {
     int tapMs = 180, tapDist = 24;
 };
 
-struct HidHideConfig { std::string mode = "auto"; std::string cli; int graceSec = 45; };   // HidHide cloak: auto (while steam.exe runs) | always | never
+struct HidHideConfig { std::string mode = "auto"; std::string cli; int graceSec = 45; std::vector<std::string> directApps; };   // directApps: exe paths whitelisted in HidHide (read the real pad directly, bypass Steam/OnePad)   // HidHide cloak: auto (while steam.exe runs) | always | never
 struct XboxHideConfig { std::string mode = "never"; };                  // XUSB node is CR_NOT_DISABLEABLE on this controller; kept for experiments only
 
 struct Config {
@@ -273,6 +273,8 @@ inline void LoadConfig(const std::wstring& path, Config& c) {
     k.rumbleGain = IniGetD(d, "deck", "rumble_gain", k.rumbleGain);
     c.hidhide.mode = Lower(IniGet(d, "hidhide", "mode", c.hidhide.mode));
     c.hidhide.graceSec = IniGetI(d, "hidhide", "grace_s", c.hidhide.graceSec);
+    c.hidhide.directApps.clear();
+    for (auto& a : Split(IniGet(d, "hidhide", "direct_apps", ""), ';')) { std::string t = Trim(a); if (!t.empty()) c.hidhide.directApps.push_back(t); }
     c.xbox.mode = Lower(IniGet(d, "xbox", "hide", c.xbox.mode));
     c.deck.viewByte = IniGetI(d, "deck.buttons", "view_byte", c.deck.viewByte); c.deck.viewMask = (int)strtol(IniGet(d, "deck.buttons", "view_mask", "0x02").c_str(), nullptr, 0);
     c.deck.menuByte = IniGetI(d, "deck.buttons", "menu_byte", c.deck.menuByte); c.deck.menuMask = (int)strtol(IniGet(d, "deck.buttons", "menu_mask", "0x01").c_str(), nullptr, 0);
@@ -325,6 +327,8 @@ inline std::string PadSection(const char* name, const PadConfig& p) {
     return b;
 }
 
+inline std::string JoinApps(const std::vector<std::string>& v) { std::string s; for (size_t i = 0; i < v.size(); i++) { if (i) s += ";"; s += v[i]; } return s; }
+
 inline bool SaveConfig(const std::wstring& path, const Config& c) {
     std::string s = "; OnePad 설정 - abxylute 3D One 터치패드/백버튼/자이로 변환 서비스\n; 저장 후 트레이 메뉴의 '설정 다시 읽기' 또는 서비스 재시작\n\n";
     char b[2048];
@@ -353,7 +357,7 @@ inline bool SaveConfig(const std::wstring& path, const Config& c) {
              k.axisX.c_str(), k.axisY.c_str(), k.axisZ.c_str(), k.accelScale, k.gyroScale, k.homeIsGuide ? 1 : 0, k.rumbleGain, k.padPressure, k.tapPressure,
              k.padsToSteam.c_str(), k.buttonsToSteam.c_str(), k.tapClick ? 1 : 0, k.tapDrag ? 1 : 0, k.tapMs, k.tapDist);
     s += b;
-    snprintf(b, sizeof b, "\n[hidhide]\n; HidHide로 실제 Xbox 패드를 Steam/게임에서 숨김: auto(기본) = Steam 실행 중 + Deck 연결 중, always, never\nmode=%s\ncli=%s\n; auto일 때 Steam이 사라진 뒤에도 숨김을 유지하는 초 (OnePad 시작 직후에도 적용). Steam은 시작 1초 안에 실제 패드를 잡고 놓지 않으므로 Steam 재시작/로그온 경쟁을 덮는다\ngrace_s=%d\n", c.hidhide.mode.c_str(), c.hidhide.cli.c_str(), c.hidhide.graceSec);
+    snprintf(b, sizeof b, "\n[hidhide]\n; HidHide로 실제 Xbox 패드를 Steam/게임에서 숨김: auto(기본) = Steam 실행 중 + Deck 연결 중, always, never\nmode=%s\ncli=%s\n; auto일 때 Steam이 사라진 뒤에도 숨김을 유지하는 초 (OnePad 시작 직후에도 적용). Steam은 시작 1초 안에 실제 패드를 잡고 놓지 않으므로 Steam 재시작/로그온 경쟁을 덮는다\ngrace_s=%d\n; 직접 읽기 앱: 세미콜론으로 구분한 exe 경로. HidHide 화이트리스트에 넣어 그 앱이 실제 Xbox 패드를 직접 읽게 함(Steam/OnePad를 거치지 않아 지연 최소).\n; 그 앱이 앞에 있으면 Steam에 아무것도 보내지 않고 OnePad 패드 엔진(마우스/클릭)만 동작. Steam에서 띄우는 앱이면 Steam의 해당 게임 설정에서 Steam 입력을 끌 것.\n; 예: direct_apps=D:\\Ryujinx\\Ryujinx.exe;D:\\Dolphin Emulator\\Dolphin.exe\ndirect_apps=%s\n", c.hidhide.mode.c_str(), c.hidhide.cli.c_str(), c.hidhide.graceSec, JoinApps(c.hidhide.directApps).c_str());
     s += b;
     snprintf(b, sizeof b, "\n[xbox]\n; 실제 Xbox(XUSB) 장치 노드 비활성화: auto = Steam 실행 중에만(권장), always, never. Steam이 Deck 에뮬만 1번 컨트롤러로 보게 함\nhide=%s\n", c.xbox.mode.c_str());
     s += b;

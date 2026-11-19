@@ -2,8 +2,8 @@
 1 RT_MANIFEST "onepad.manifest"
 1 ICON "onepad.ico"
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 1,1,0,0
+ PRODUCTVERSION 1,1,0,0
  FILEOS VOS_NT_WINDOWS32
  FILETYPE VFT_APP
 BEGIN
@@ -13,7 +13,7 @@ BEGIN
     BEGIN
       VALUE "FileDescription", "OnePad - 3D One trackpad/grip/gyro service"
       VALUE "ProductName", "OnePad"
-      VALUE "FileVersion", "1.0.0.0"
+      VALUE "FileVersion", "1.1.0.0"
       VALUE "OriginalFilename", "onepad.exe"
     END
   END

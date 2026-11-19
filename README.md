@@ -86,6 +86,16 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 - `mode=always`(모든 앱에서 숨김)를 쓸 때만 `direct_apps=D:\Ryujinx\Ryujinx.exe`처럼 예외 앱을 적습니다(여러 개는 `;`, OnePad 재시작 필요).
 전체 키 설명은 [docs/설계-설정.md](docs/설계-설정.md), 재설치 절차와 함정 모음은 [docs/재설치-가이드.md](docs/재설치-가이드.md)에 있습니다.
 
+### 변경 내역
+
+**1.1.0** (2026-11-19)
+- **Steam 밖 게임·에뮬레이터는 실제 Xbox 패드를 직접 읽습니다.** HidHide 역방향 모드(`[hidhide] mode=inverse`)가 기본값이 되어 실제 패드를 Steam에서만 숨깁니다. Steam을 거치지 않으므로 버튼 입력 지연이 줄고, 앱별로 등록할 것도 없습니다.
+- **입력 지연 감소**: 컨트롤러 리포트가 도착하는 즉시 가상 Steam Deck 컨트롤러로 넘깁니다(기존 4 ms 주기 대기 제거). usbip는 `--receive-mode low-latency`로 연결합니다.
+- `mode=always`를 쓰는 경우를 위해 예외 앱 목록 `[hidhide] direct_apps`를 추가했습니다.
+- 1.0.0에서 올리는 경우: 기존 `%LOCALAPPDATA%\OnePad\onepad.ini`는 그대로 유지됩니다. `[hidhide] mode=inverse`로 바꾸고 `[deck] attach_args` 끝에 `--receive-mode low-latency`를 붙이거나, 설정 파일을 지우고 다시 설치하면 새 기본값이 적용됩니다.
+
+**1.0.0** (2026-11-06) — 첫 공개 버전.
+
 ### 빌드
 
 LLVM-MinGW(`winget install MartinStorsjo.LLVM-MinGW.UCRT`) → `build.ps1`. 설치 파일은 Inno Setup 6 → `ISCC.exe installer\OnePad-Setup.iss`. 빌드 전 실행 중인 `onepad.exe --stop`이 필요합니다.
@@ -171,6 +181,16 @@ Requirements: Windows 11, abxylute 3D One (controller VID 2993 / PID 0012), Stea
 - With the default `[hidhide] mode=inverse` every program outside Steam reads the real pad directly, so nothing needs registering. Latency-sensitive emulators (Ryujinx etc.) are fastest when **launched outside Steam** from their own shortcut. Launching them from Steam routes input through Steam Input's virtual pad (a little slower); if you still want that, disable Steam Input for that game (library → game → Manage → Controller settings).
 - Only with `mode=always` (hidden from every app) do you list exceptions as `direct_apps=D:\Ryujinx\Ryujinx.exe` (separate several with `;`, restart OnePad).
 Full key reference (Korean): [docs/설계-설정.md](docs/설계-설정.md). Reinstall guide and pitfalls (Korean): [docs/재설치-가이드.md](docs/재설치-가이드.md).
+
+### Changelog
+
+**1.1.0** (2026-11-19)
+- **Games and emulators outside Steam read the real Xbox pad directly.** HidHide inverse mode (`[hidhide] mode=inverse`) is now the default, hiding the real pad from Steam only. With no hop through Steam, button latency drops and nothing has to be registered per app.
+- **Lower input latency**: controller reports are pushed to the virtual Steam Deck controller as soon as they arrive (the 4 ms pacing wait is gone), and usbip attaches with `--receive-mode low-latency`.
+- New `[hidhide] direct_apps` exception list for those who keep `mode=always`.
+- Upgrading from 1.0.0: your existing `%LOCALAPPDATA%\OnePad\onepad.ini` is kept. Set `[hidhide] mode=inverse` and append `--receive-mode low-latency` to `[deck] attach_args`, or delete the file and reinstall to get the new defaults.
+
+**1.0.0** (2026-11-06) — first public release.
 
 ### Build
 

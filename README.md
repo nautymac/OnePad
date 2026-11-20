@@ -89,6 +89,11 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 
 ### 변경 내역
 
+**1.1.1** (2026-11-20)
+- **Steam 게임 중 입력이 두 곳에서 들어가던 문제 수정.** 역방향 모드에서는 Steam으로 띄운 게임이 실제 패드와 Steam Input 가상 패드를 둘 다 봐서 캐릭터가 둘 선택되는 식으로 겹쳤습니다. 이제 Steam이 게임(비Steam 항목 포함)을 실행하는 동안만 실제 패드를 모든 앱에서 숨기고, 게임이 끝나면 몇 초 안에 직접 읽기 상태로 돌아옵니다.
+- HidHide 앱 목록을 실제 목록 기준으로 맞추고 드라이브 문자를 대문자로 정규화합니다(HidHide는 `d:\...`처럼 소문자 드라이브 경로를 조용히 무시합니다).
+- `direct_apps` 기본값을 비웠습니다. Steam에서 띄우는 에뮬레이터를 여기에 넣으면 다시 입력이 겹칩니다.
+
 **1.1.0** (2026-11-19)
 - **Steam 밖 게임·에뮬레이터는 실제 Xbox 패드를 직접 읽습니다.** HidHide 역방향 모드(`[hidhide] mode=inverse`)가 기본값이 되어 실제 패드를 Steam에서만 숨깁니다. Steam을 거치지 않으므로 버튼 입력 지연이 줄고, 앱별로 등록할 것도 없습니다.
 - **입력 지연 감소**: 컨트롤러 리포트가 도착하는 즉시 가상 Steam Deck 컨트롤러로 넘깁니다(기존 4 ms 주기 대기 제거). usbip는 `--receive-mode low-latency`로 연결합니다.
@@ -185,6 +190,11 @@ Requirements: Windows 11, abxylute 3D One (controller VID 2993 / PID 0012), Stea
 Full key reference (Korean): [docs/설계-설정.md](docs/설계-설정.md). Reinstall guide and pitfalls (Korean): [docs/재설치-가이드.md](docs/재설치-가이드.md).
 
 ### Changelog
+
+**1.1.1** (2026-11-20)
+- **Fixed double input in Steam games.** In inverse mode a game launched through Steam saw both the real pad and Steam Input's virtual pad (e.g. two characters selected). The real pad is now hidden from every app only while Steam runs a game (non-Steam shortcuts included); the direct-read state returns a few seconds after the game exits.
+- HidHide's application list is reconciled against its real contents and drive letters are upper-cased (HidHide silently ignores lower-case paths such as `d:\...`).
+- `direct_apps` is empty by default; listing a Steam-launched emulator there brings the double input back.
 
 **1.1.0** (2026-11-19)
 - **Games and emulators outside Steam read the real Xbox pad directly.** HidHide inverse mode (`[hidhide] mode=inverse`) is now the default, hiding the real pad from Steam only. With no hop through Steam, button latency drops and nothing has to be registered per app.

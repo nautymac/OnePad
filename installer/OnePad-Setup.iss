@@ -3,7 +3,7 @@
 ;         ISCC.exe /DPERSONAL=D:\OneDrive\AI\ClaudeCode\OnePad\personal installer\OnePad-Setup.iss
 ;                                                             -> also restores this PC's Azahar config/saves (never publish that build)
 #define MyAppName "OnePad"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.1.1"
 #define MyAppPublisher "nautymac"
 #define MyAppURL "https://github.com/nautymac/OnePad"
 #define Root ".."

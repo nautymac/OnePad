@@ -273,6 +273,15 @@ private:
 
     // Routing: while Steam holds the Deck persona, pads/grips/gyro go to Steam only when a Steam game is in the
     // foreground (games_only); on the desktop OnePad's own trackpad engine keeps working (tap, drag, scroll, gyro).
+    // Steam sets HKCU\Software\Valve\Steam\RunningAppID while a game (including a non-Steam shortcut) is running.
+    static bool SteamGameRunning() {
+        HKEY k; DWORD v = 0, n = sizeof v, type = 0; bool running = false;
+        if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Valve\\Steam", 0, KEY_READ, &k) == ERROR_SUCCESS) {
+            if (RegQueryValueExW(k, L"RunningAppID", nullptr, &type, (BYTE*)&v, &n) == ERROR_SUCCESS && type == REG_DWORD) running = v != 0;
+            RegCloseKey(k);
+        }
+        return running;
+    }
     // Steam processes that open controllers: steam.exe and steamwebhelper.exe (under bin\cef\<variant>\). Used for HidHide inverse mode.
     static std::vector<std::wstring> SteamExes() {
         std::vector<std::wstring> v; wchar_t buf[MAX_PATH]; DWORD n = sizeof buf; HKEY k;
@@ -373,6 +382,12 @@ private:
         }
         // 2. HidHide cloak: hides the real pad from games (not from Steam itself, which uses another path)
         if (!hidhide_.Available()) return;
+        // inverse mode: hidden from Steam only - except while a Steam game runs (RunningAppID != 0, also set for
+        // non-Steam shortcuts), when the game must not see the real pad next to Steam Input's virtual one (double input).
+        if (cfg_.hidhide.mode == "inverse" && hidhide_.Cloaked()) {
+            bool wantInv = !SteamGameRunning();
+            if (wantInv != hidhide_.InverseActive()) hidhide_.SwitchInverse(wantInv);
+        }
         bool want = WantHide(cfg_.hidhide.mode);
         // Startup with Steam running: never drop a cloak a previous instance left on just because the Deck is not attached yet
         // (Steam would adopt the real pad within a second and keep it until restarted).

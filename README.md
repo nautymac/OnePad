@@ -43,6 +43,7 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 | 데스크톱·비Steam 프로그램: 오른쪽 패드 = 마우스 포인터, 왼쪽 패드 = 스크롤 휠, 탭 = 왼쪽 클릭. 민감도·스크롤 속도·축 반전 설정 | ✅ |
 | 데스크톱: 왼쪽 백버튼 = 왼쪽 클릭, 오른쪽 백버튼 = 오른쪽 클릭 (키 조합, 모드 전환, 자이로 홀드로 바꿀 수 있음) | ✅ |
 | **실제 Xbox 패드를 Steam에서만 숨김**(HidHide 역방향 모드, 기본): Steam은 Steam Deck 컨트롤러 하나만 보고, 그 밖의 모든 게임·에뮬레이터·프로그램은 실제 Xbox 패드를 **직접** 읽음 → 앱별 설정 없이 입력 지연 최소. Steam이 실제 패드를 2P로 잡아 입력이 겹치는 일도 없음 | ✅ |
+| **Steam 게임 실행 중 자동 전환**: Steam(비Steam 항목 포함)으로 게임을 띄우면 그 동안만 실제 패드를 모든 앱에서 숨겨 게임이 Steam Input 가상 패드 하나만 보게 함(입력이 두 곳에서 들어가는 문제 방지). 게임이 끝나면 몇 초 안에 직접 읽기 상태로 복귀 | ✅ |
 | 숨김 모드 선택(`[hidhide] mode`): `inverse`(기본, 위) / `always`(모든 앱에서 숨김, Steam 게임은 Steam Input 가상 패드만 보임; 예외 앱은 `direct_apps`) / `auto` / `never` | ✅ |
 | 패드별 펌웨어 진동(햅틱) 켜기/끄기, 펌웨어 백버튼 매핑 해제·종료 시 원복 | ✅ |
 | 자이로 → 마우스 (데스크톱, 선택) | ✅ |
@@ -139,6 +140,7 @@ Outside Steam (desktop, ordinary programs) the trackpads act as a mouse and the 
 | Desktop / non-Steam apps: right pad = mouse pointer, left pad = scroll wheel, tap = left click; sensitivity, scroll speed and axis flip are configurable | ✅ |
 | Desktop: left grip = left click, right grip = right click (configurable: key combos, mode shift, gyro hold) | ✅ |
 | **Real Xbox pad hidden from Steam only** (HidHide inverse mode, default): Steam sees exactly one Steam Deck controller, while every other game, emulator and program reads the real Xbox pad **directly** → lowest input latency with nothing to configure per app, and Steam can never adopt the real pad as player 2 | ✅ |
+| **Automatic switch while a Steam game runs**: when a game (including a non-Steam shortcut) is launched through Steam, the real pad is hidden from every app for the duration so the game sees only Steam Input's virtual pad (no double input); a few seconds after the game exits the direct-read state returns | ✅ |
 | Hiding mode (`[hidhide] mode`): `inverse` (default, above) / `always` (hidden from every app; Steam games see only Steam Input's virtual pad; exceptions via `direct_apps`) / `auto` / `never` | ✅ |
 | Per-pad firmware haptics on/off; firmware grip mapping unmapped while running and restored on exit | ✅ |
 | Gyro → mouse on the desktop (optional) | ✅ |

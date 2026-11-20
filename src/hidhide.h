@@ -73,22 +73,42 @@ public:
     // Inverse mode (HidHide "inverse application list"): the registered apps are the ONLY ones that cannot see the
     // hidden pad. Register just Steam, and every game/emulator/desktop app reads the real pad directly (lowest latency)
     // while Steam still sees only the virtual Deck. Nothing per app to configure.
-    bool inverse_ = false; std::vector<std::wstring> blockApps_;
+    bool inverse_ = false, inverseActive_ = false; std::vector<std::wstring> blockApps_;
     void SetInverse(bool on, const std::vector<std::wstring>& block) { inverse_ = on; blockApps_ = block; }
+    bool InverseActive() const { return inverseActive_; }
+    // Make HidHide's application list exactly the wanted set:
+    //   inverse  -> Steam processes only (they are the ones that must NOT see the pad)
+    //   normal   -> OnePad (rumble via XInput) + direct_apps (they are the ones that MAY see the pad)
+    // Everything else in the list is removed by its stored spelling (see ListApps).
+    void RegisterApps(bool inverse) {
+        wchar_t exe[MAX_PATH]; GetModuleFileNameW(nullptr, exe, MAX_PATH);
+        std::vector<std::wstring> want;
+        if (inverse) want = blockApps_; else { want.push_back(exe); for (auto& a : extraApps_) want.push_back(a); }
+        // HidHideCLI silently ignores "d:\..." (exit 0, "volume is case sensitive"): the drive letter must be upper case.
+        // Steam's registry SteamPath is lower case ("d:/steam"), so normalise every path here.
+        for (auto& w : want) if (w.size() > 1 && w[1] == L':') w[0] = (wchar_t)towupper(w[0]);
+        if (!inverse) Run(L"--inv-off");
+        for (auto& cur : ListApps()) {
+            bool keep = false;
+            for (auto& w : want) if (_wcsicmp(cur.c_str(), w.c_str()) == 0) { keep = true; break; }
+            if (!keep && cur.find(L"HidHideCLI.exe") == std::wstring::npos) Run(L"--app-unreg \"" + cur + L"\"");
+        }
+        for (auto& w : want) Run(L"--app-reg \"" + w + L"\"");
+        if (inverse) Run(L"--inv-on");
+        inverseActive_ = inverse;
+    }
+    // Runtime switch between "hidden from Steam only" (inverse) and "hidden from everyone but OnePad" (normal).
+    // Used while a Steam game runs: the game must see only Steam Input's virtual pad, otherwise the real pad is a
+    // second player. The Xbox node is re-plugged so whoever already holds the pad has to re-open it through the filter.
+    void SwitchInverse(bool on) {
+        if (!available_) return;
+        RegisterApps(on);
+        for (auto& id : hidden_) if (id.rfind(L"USB\\", 0) == 0) RestartDevNode(id);
+        LOGI("hidhide: %s", on ? "inverse ON - real pad hidden from Steam only (apps read it directly)" : "inverse OFF - real pad hidden from every app (Steam game running)");
+    }
     void Prepare() {
         if (!available_) return;
-        wchar_t exe[MAX_PATH]; GetModuleFileNameW(nullptr, exe, MAX_PATH);
-        if (inverse_) {
-            Run(std::wstring(L"--app-unreg \"") + exe + L"\"");           // OnePad must stay able to see the pad (rumble via XInput)
-            for (auto& a : extraApps_) Run(L"--app-unreg \"" + a + L"\"");
-            for (auto& a : blockApps_) Run(L"--app-reg \"" + a + L"\"");   // Steam processes: blocked
-            Run(L"--inv-on");
-        } else {
-            Run(L"--inv-off");
-            for (auto& a : blockApps_) Run(L"--app-unreg \"" + a + L"\"");
-            Run(std::wstring(L"--app-reg \"") + exe + L"\"");
-            for (auto& a : extraApps_) Run(L"--app-reg \"" + a + L"\"");   // [hidhide] direct_apps: these read the real pad themselves
-        }
+        RegisterApps(inverse_);
         hidden_.clear();
         for (auto& id : FindInstanceIds(L"USB", L"USB\\VID_2993&PID_0012&MI_00")) hidden_.push_back(id);
         // The XInput HID node alternates between IG_00 and IG_01 across re-enumerations: hide every instance ever seen
@@ -128,6 +148,28 @@ private:
         CloseHandle(pi.hThread); CloseHandle(pi.hProcess);
         LOGI("hidhide: %ls -> %lu", args.c_str(), code);
         return code == 0;
+    }
+    // "--app-list" output, one registered path per entry, spelled exactly as HidHide stores it
+    // (HidHide dedupes case-insensitively on --app-reg but --app-unreg must match the stored spelling).
+    std::vector<std::wstring> ListApps() {
+        std::vector<std::wstring> out;
+        SECURITY_ATTRIBUTES sa{}; sa.nLength = sizeof sa; sa.bInheritHandle = TRUE;
+        HANDLE rd = nullptr, wr = nullptr; if (!CreatePipe(&rd, &wr, &sa, 0)) return out;
+        SetHandleInformation(rd, HANDLE_FLAG_INHERIT, 0);
+        std::wstring cmd = L"\"" + cli_ + L"\" --app-list";
+        STARTUPINFOW si{}; si.cb = sizeof si; si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES; si.wShowWindow = SW_HIDE; si.hStdOutput = wr; si.hStdError = wr;
+        PROCESS_INFORMATION pi{}; std::vector<wchar_t> buf(cmd.begin(), cmd.end()); buf.push_back(0);
+        bool ok = CreateProcessW(nullptr, buf.data(), nullptr, nullptr, TRUE, CREATE_NO_WINDOW, nullptr, nullptr, &si, &pi) != 0;
+        CloseHandle(wr);
+        std::string text;
+        if (ok) { char b[4096]; DWORD n; while (ReadFile(rd, b, sizeof b, &n, nullptr) && n) text.append(b, n); WaitForSingleObject(pi.hProcess, 10000); CloseHandle(pi.hThread); CloseHandle(pi.hProcess); }
+        CloseHandle(rd);
+        size_t p = 0;
+        while ((p = text.find("--app-reg \"", p)) != std::string::npos) {
+            p += 11; size_t q = text.find('"', p); if (q == std::string::npos) break;
+            out.push_back(Widen(text.substr(p, q - p))); p = q + 1;
+        }
+        return out;
     }
     std::wstring cli_; bool available_ = false, prepared_ = false, cloaked_ = false, cloakKnown_ = false;
     std::vector<std::wstring> hidden_;

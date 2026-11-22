@@ -1,0 +1,50 @@
+OnePad - third-party notices
+============================
+
+OnePad itself is released under the MIT License (see LICENSE).
+
+1. HIDMaestro
+-------------
+https://github.com/hifihedgehog/HIDMaestro
+
+The Steam Deck controller HID report descriptor and the feature-report stubs in OnePad
+(src/deck.h, compiled into onepad.exe) follow HIDMaestro's Steam Deck profile.
+HIDMaestro is distributed under the following license:
+
+--------------------------------------------------------------------------------
+MIT License
+
+"And we talk of Christ, we rejoice in Christ, we preach of Christ, we prophesy of Christ,
+and we write according to our prophecies, that our children may know to what source they
+may look for a remission of their sins." — 2 Nephi 25:26
+
+Glory, honor, and praise to the Lord Jesus Christ, the source of all truth and salvation, forever and ever.
+
+Copyright (c) 2026 HIDMaestro Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+--------------------------------------------------------------------------------
+
+2. Programs the installer downloads (not part of OnePad, not redistributed in the public installer)
+-----------------------------------------------------------------------------------------------
+HidHide      https://github.com/nefarius/HidHide          BSD 3-Clause
+usbip-win2   https://github.com/vadimgrn/usbip-win2       GPL-3.0
+AutoHotkey   https://github.com/AutoHotkey/AutoHotkey     GPL-2.0
+Azahar       https://github.com/azahar-emu/azahar         GPL-2.0
+Each is fetched from its official release and installed under its own license.

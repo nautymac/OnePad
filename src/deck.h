@@ -1,5 +1,9 @@
 // OnePad - Steam Deck controller (28DE:1205) persona: USB identity, Neptune input frames, Valve feature-report
 // command channel (attributes, serials, settings, lizard mode, rumble).
+//
+// The Steam Deck HID report descriptor and the feature-report stubs follow the Steam Deck profile of
+// HIDMaestro (https://github.com/hifihedgehog/HIDMaestro), MIT License,
+// Copyright (c) 2026 HIDMaestro Contributors. Full notice: THIRD-PARTY-NOTICES.txt.
 #pragma once
 #include "common.h"
 #include "config.h"

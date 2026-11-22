@@ -89,6 +89,9 @@ Steam 밖(데스크톱, 일반 프로그램)에서는 터치패드가 마우스,
 
 ### 변경 내역
 
+**1.1.2** (2026-11-22)
+- 제3자 고지 추가: Steam Deck 디스크립터와 feature report 스텁이 따르는 [HIDMaestro](https://github.com/hifihedgehog/HIDMaestro)의 MIT 저작권·허가 고지를 저장소(`THIRD-PARTY-NOTICES.txt`)와 설치 폴더에 넣었습니다. 기능 변경은 없습니다.
+
 **1.1.1** (2026-11-20)
 - **Steam 게임 중 입력이 두 곳에서 들어가던 문제 수정.** 역방향 모드에서는 Steam으로 띄운 게임이 실제 패드와 Steam Input 가상 패드를 둘 다 봐서 캐릭터가 둘 선택되는 식으로 겹쳤습니다. 이제 Steam이 게임(비Steam 항목 포함)을 실행하는 동안만 실제 패드를 모든 앱에서 숨기고, 게임이 끝나면 몇 초 안에 직접 읽기 상태로 돌아옵니다.
 - HidHide 앱 목록을 실제 목록 기준으로 맞추고 드라이브 문자를 대문자로 정규화합니다(HidHide는 `d:\...`처럼 소문자 드라이브 경로를 조용히 무시합니다).
@@ -191,6 +194,9 @@ Full key reference (Korean): [docs/설계-설정.md](docs/설계-설정.md). Rei
 
 ### Changelog
 
+**1.1.2** (2026-11-22)
+- Third-party notice added: the MIT copyright and permission notice of [HIDMaestro](https://github.com/hifihedgehog/HIDMaestro), whose Steam Deck profile the descriptor and feature-report stubs follow, now ships in the repository (`THIRD-PARTY-NOTICES.txt`) and in the install folder. No functional change.
+
 **1.1.1** (2026-11-20)
 - **Fixed double input in Steam games.** In inverse mode a game launched through Steam saw both the real pad and Steam Input's virtual pad (e.g. two characters selected). The real pad is now hidden from every app only while Steam runs a game (non-Steam shortcuts included); the direct-read state returns a few seconds after the game exits.
 - HidHide's application list is reconciled against its real contents and drive letters are upper-cased (HidHide silently ignores lower-case paths such as `d:\...`).
@@ -214,4 +220,4 @@ LLVM-MinGW (`winget install MartinStorsjo.LLVM-MinGW.UCRT`) → `build.ps1`. Ins
 
 MIT for OnePad itself. HidHide (BSD-3), usbip-win2 (GPL-3), AutoHotkey (GPL-2) and Azahar (GPL-2) are downloaded at install time under their own licenses.
 `sapjoyapis.dll` is the vendor SDK shipped on the 3D One and is not part of this repository (OnePad loads it from `C:\Program Files (x86)\Gear\Settings`).
-The Steam Deck descriptor / feature-report stubs follow HIDMaestro's MIT-licensed profile.
+The Steam Deck descriptor / feature-report stubs follow the Steam Deck profile of [HIDMaestro](https://github.com/hifihedgehog/HIDMaestro) (MIT, Copyright (c) 2026 HIDMaestro Contributors). Its full copyright and permission notice is in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt), which the installer also places in the install folder.

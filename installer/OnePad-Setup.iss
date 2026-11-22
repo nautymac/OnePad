@@ -3,7 +3,7 @@
 ;         ISCC.exe /DPERSONAL=D:\OneDrive\AI\ClaudeCode\OnePad\personal installer\OnePad-Setup.iss
 ;                                                             -> also restores this PC's Azahar config/saves (never publish that build)
 #define MyAppName "OnePad"
-#define MyAppVersion "1.1.1"
+#define MyAppVersion "1.1.2"
 #define MyAppPublisher "nautymac"
 #define MyAppURL "https://github.com/nautymac/OnePad"
 #define Root ".."
@@ -112,6 +112,8 @@ Source: "{#Root}\bin\onepad.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "{#Root}\bin\probe.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "{#Root}\bin\azahar-launch.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
 Source: "{#Root}\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#Root}\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
+Source: "{#Root}\THIRD-PARTY-NOTICES.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Root}\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs
 Source: "{#Root}\tools\Add-SteamShortcut.ps1"; DestDir: "{app}\tools"; Flags: ignoreversion
 Source: "{#Root}\tools\Register-LogonTask.ps1"; DestDir: "{app}\tools"; Flags: ignoreversion
